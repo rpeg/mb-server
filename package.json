@@ -1,7 +1,7 @@
 {
   "name": "mb-node",
   "version": "1.0.0",
-  "description": "",
+  "description": "Express server to handle requests for custom MusicBrainz database",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,7 +18,6 @@
     "helmet": "3.21.2",
     "knex": "0.20.4",
     "morgan": "1.9.1",
-    "objection": "2.0.6",
     "pg": "7.14.0"
   },
   "devDependencies": {
