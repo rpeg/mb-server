@@ -16,14 +16,18 @@ router.get('/api/artist-locations', async (req, res) => {
     const results = await knex
       .select('area.name')
       .from('musicbrainz.artist AS artist')
-      .innerJoin('musicbrainz.release AS release', 'artist.id', 'release.artist_credit')
-      .innerJoin('musicbrainz.area AS area', 'artist.area', 'area.id')
-      .where('artist.name', '=', artist.name)
+      .join('musicbrainz.area AS area', 'artist.area', 'area.id')
+      .leftJoin('musicbrainz.release AS release', 'artist.id', 'release.artist_credit')
       .modify((qb) => {
         if (artist.release) {
-          qb.where('release.name', '=', artist.release);
+          const words = artist.release.split(' ').map((w) => w.toLowerCase());
+          const wordsWithoutArticles = words.filter((w) => !['the', 'a', 'an', 'of', 'from'].contains(w));
+          const match = wordsWithoutArticles.length ? `%${wordsWithoutArticles[0]}%` : `%${words[0]}%`;
+
+          qb.and('release.name', 'ilike', match);
         }
       })
+      .where('artist.name', 'ilike', artist.name)
       .limit(1);
 
     if (results.length) {
