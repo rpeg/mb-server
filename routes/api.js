@@ -6,7 +6,9 @@ const knex = require('../db/knex');
 require('dotenv').config();
 
 router.get('/api/artist-locations', async (req, res) => {
-  const { artists } = req.body;
+  const artists = JSON.parse(req.query.artists);
+
+  console.log(artists);
 
   const artistLocations = [];
 
