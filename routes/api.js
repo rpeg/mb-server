@@ -18,11 +18,12 @@ const fetchArtistLocation = async (artist) => {
     .select('area.*')
     .from('musicbrainz.artist AS artist')
     .join('musicbrainz.area AS area', 'artist.area', 'area.id')
-    .join('musicbrainz.release AS release', (qb) => {
+    .leftJoin('musicbrainz.release AS release', (qb) => {
       qb.on('artist.id', '=', 'release.artist_credit');
       qb.andOnVal('release.name', 'ilike', match);
-    }, 'left')
-    .where('artist.name', 'ilike', artist.name)
+    })
+    .where('artist.name', '=', artist.name)
+    .orderBy('release.name', 'asc')
     .limit(1);
 
   let country = '';
