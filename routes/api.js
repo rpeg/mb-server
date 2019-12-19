@@ -52,7 +52,7 @@ const fetchArtistLocation = async (artist) => {
 router.get('/api/artist-locations', async (req, res) => {
   const artists = JSON.parse(req.query.artists);
 
-  await asyncPool(4, artists, fetchArtistLocation).then((results) => res.json(results));
+  await asyncPool(20, artists, fetchArtistLocation).then((results) => res.json(results));
 });
 
 module.exports = router;
