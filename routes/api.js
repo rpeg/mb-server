@@ -11,8 +11,6 @@ const COUNTRY_TYPE = 1;
 router.get('/api/artist-locations', async (req, res) => {
   const artists = JSON.parse(req.query.artists);
 
-  console.log(artists);
-
   const artistLocations = [];
 
   const promises = artists.map(async (artist) => {
@@ -30,8 +28,6 @@ router.get('/api/artist-locations', async (req, res) => {
       }, 'left')
       .where('artist.name', 'ilike', artist.name)
       .limit(1);
-
-    console.log(rows);
 
     if (rows.length) {
       const row = rows[0];
