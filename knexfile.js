@@ -12,7 +12,7 @@ module.exports = {
     },
     pool: {
       min: 1,
-      max: 100,
+      max: 20,
     },
   },
 
@@ -23,7 +23,7 @@ module.exports = {
     ssl: true,
     pool: {
       min: 1,
-      max: 100,
+      max: 20,
     },
   },
 };
