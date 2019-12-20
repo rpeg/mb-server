@@ -10,6 +10,10 @@ module.exports = {
       password: '',
       database: 'musicbrainz',
     },
+    pool: {
+      min: 1,
+      max: 20,
+    },
   },
 
   production: {
@@ -17,5 +21,9 @@ module.exports = {
     debug: true,
     connection: process.env.DATABASE_URL,
     ssl: true,
+    pool: {
+      min: 1,
+      max: 20,
+    },
   },
 };

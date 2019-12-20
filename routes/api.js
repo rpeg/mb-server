@@ -1,38 +1,60 @@
 const express = require('express');
+const axios = require('axios');
+const asyncPool = require('tiny-async-pool');
 
 const router = express.Router();
 const knex = require('../db/knex');
 
 require('dotenv').config();
 
-router.get('/api/artist-locations', async (req, res) => {
-  const { artists } = req.body;
+const COUNTRY_TYPE = 1;
 
-  const artistLocations = [];
+const fetchArtistLocation = async (artist) => {
+  const words = artist.release.split(' ').map((w) => w.toLowerCase());
+  const wordsWithoutArticles = words.filter((w) => !['the', 'a', 'an', 'of', 'from'].includes(w));
+  const match = wordsWithoutArticles.length ? `%${wordsWithoutArticles[0]}%` : `%${words[0]}%`;
 
-  const promises = artists.map(async (artist) => {
-    const results = await knex
-      .select('area.name')
-      .from('musicbrainz.artist AS artist')
-      .innerJoin('musicbrainz.release AS release', 'artist.id', 'release.artist_credit')
-      .innerJoin('musicbrainz.area AS area', 'artist.area', 'area.id')
-      .where('artist.name', '=', artist.name)
-      .modify((qb) => {
-        if (artist.release) {
-          qb.where('release.name', '=', artist.release);
-        }
-      })
-      .limit(1);
+  const rows = await knex
+    .select('area.*')
+    .from('musicbrainz.artist AS artist')
+    .join('musicbrainz.area AS area', 'artist.area', 'area.id')
+    .leftJoin('musicbrainz.release AS release', (qb) => {
+      qb.on('artist.id', '=', 'release.artist_credit');
+      qb.andOnVal('release.name', 'ilike', match);
+    })
+    .where('artist.name', '=', artist.name)
+    .orderBy('release.name', 'asc')
+    .limit(1);
 
-    if (results.length) {
-      artistLocations.push({
-        artist: artist.name,
-        country: results[0].name,
-      });
+  let country = '';
+
+  if (rows.length) {
+    const row = rows[0];
+
+    if (row.type === COUNTRY_TYPE) {
+      country = row.name;
+    } else {
+      await axios.get(`http://api.geonames.org/searchJSON?q=${row.name}&maxRows=1&username=${process.env.GEONAMES_USER}`)
+        .then((result) => {
+          if (result.data.geonames && result.data.geonames.length) {
+            country = result.data.geonames[0].countryName;
+          }
+        })
+        .catch((err) => console.log(err));
     }
-  });
+  }
 
-  await Promise.all(promises).then(() => res.json(artistLocations));
+  return ({
+    artist: artist.name,
+    country,
+  });
+};
+
+router.get('/api/artist-locations', async (req, res) => {
+  const artists = JSON.parse(req.query.artists);
+
+  await asyncPool(process.env.ASYNC_POOL_LIMIT, artists, fetchArtistLocation)
+    .then((results) => res.json(results));
 });
 
 module.exports = router;
