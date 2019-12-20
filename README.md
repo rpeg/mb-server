@@ -1,3 +1,5 @@
 # MusicBrainz Server
 
-Express server on Node runtime to faciliate requests for a custom MusicBrainz database service.
+Express server to faciliate requests for a custom MusicBrainz `pg` database service.
+
+Used by [top-spotify-node](https://github.com/scjohnson16/top-spotify-node)
